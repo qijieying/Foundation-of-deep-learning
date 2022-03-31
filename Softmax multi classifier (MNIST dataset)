@@ -1,0 +1,56 @@
+#Softmax多分类器模型分类MNIST数据集
+import numpy as np
+from keras.datasets import mnist
+(x_train,y_train),(x_test,y_test)=mnist.load_data()
+def one_hot_encoding(lables,n_class):
+    re=np.eye(n_class)[lables]
+    return re
+n_train=x_train.shape[0]
+n_test=x_test.shape[0]
+n_class=10
+flatten_size=28*28
+x_train=x_train/255
+x_train=x_train.reshape((n_train,flatten_size))
+y_train=one_hot_encoding(y_train,n_class)
+x_test=x_test/255
+x_test=x_test.reshape((n_test,flatten_size))
+y_test=one_hot_encoding(y_test,n_class)
+w=np.random.rand(10,784)
+b=np.zeros((10,1))
+def model(x):
+    n_samples=x.shape[0]
+    z=w.dot(x.T)+b
+    exp_z=np.exp(z)
+    sum_e=np.sum(exp_z,axis=0)
+    y_hat=exp_z/sum_e
+    return y_hat.T
+#梯度下降
+epochs=2000
+lr=0.05
+for epoch in range(epochs):
+    sum_w=np.zeros_like(w)
+    sum_b=np.zeros_like(b)
+    y_hat=model(x_train)
+    sum_w=np.dot((y_hat-y_train).T,x_train)
+    sum_b=np.sum((y_hat-y_train),axis=0).reshape(-1,1)
+    grad_w=(1/n_train)*sum_w
+    grad_b=(1/n_train)*sum_b
+    w=w-lr*grad_w
+    b=b-lr*grad_b
+def get_acuuracy(x,y):
+    n_samples=x.shape[0]
+    y_hat=model(x)
+    y_hat=np.argmax(y_hat,axis=1)
+    y=np.argmax(y,axis=1)
+    cnt=0
+    for i in range(len(y_hat)):
+        if y[i]==y_hat[i]:
+            cnt+=1
+    accuracy=cnt/n_samples
+    return accuracy
+train_accuracy = get_acuuracy(x_train,y_train)
+test_accuracy=get_acuuracy(x_test,y_test)
+print(train_accuracy)
+print(test_accuracy)
+'''result 0.8823333333333333
+0.8865'''
