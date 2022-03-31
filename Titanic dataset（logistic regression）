@@ -1,0 +1,60 @@
+#泰坦尼克号数据集分析
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+dataset=pd.read_csv('D:/pythonpro/train.csv')
+dataset['Sex']=dataset['Sex'].astype('category').cat.codes
+dataset['Age']=dataset['Age'].fillna(dataset['Age'].mean())
+X=dataset[['Pclass','Sex','Fare','Age']].values
+y=dataset['Survived'].values
+mean=X.mean(axis=0)
+std=X.std(axis=0)
+X=(X-mean)/std
+X_train,X_test,Y_train,Y_test=train_test_split(X,y,test_size=0.2)
+n_train=X_train.shape[0]
+n_features=X_train.shape[1]
+w=np.random.rand(n_features)
+b=1.1
+def model(x):
+    return sigmoid(w.dot(x)+b)
+lr=0.01
+epochs=10000
+for i in range(epochs):
+    sum_w=np.zeros(n_features)
+    s_b=0.0
+    for i in range(n_train):
+        xi=X_train[i]
+        yi_hat=model(xi)
+        yi=Y_train
+        sum_w=sum_w+xi.dot(yi_hat-yi)
+        s_b=s_b+(yi_hat-yi)
+    grad_w=sum_w.dot(1/n_train)
+    grad_b=(1/n_train)*s_b
+    w=w-lr*grad_w
+    b=b-lr*grad_b
+def predict(X):
+    predictions=[]
+    n_samples=x.shape[0]
+    for i in range(n_samples):
+        xi=X[i]
+        yi_hat=model(xi)
+        if yi_hat<0.5:
+            predictions.append(0)
+        else:
+            predictions.append(1)
+    return predictions
+def get_accuracy(X,y):
+    n_samples=X.shape[0]
+    predictions=predict(X)
+    loss=0
+    for i in range(n_samples):
+        if y[i]!=predictions:
+            loss+=1
+    accuracy=(n_samples-loss)/n_samples
+    return accuracy
+train_accuracy=get_accuracy(X_train,Y_train)
+test_accuracy=get_accuracy(X_test,Y_test)
+print(train_accuracy)
+print(test_accuracy)
